@@ -33,3 +33,12 @@ export const UserTable = pgTable(
 export function lower(email: AnyPgColumn): SQL {
   return sql`lower(${email})`;
 }
+
+export const TokenTable = pgTable("tokens", {
+  hash: text("hash").primaryKey(),
+  userId: bigint("user_id", { mode: "number" })
+    .notNull()
+    .references(() => UserTable.id, { onDelete: "cascade" }),
+  expiry: bigint("expiry", { mode: "number" }).notNull(),
+  scope: text("scope").notNull(),
+});
