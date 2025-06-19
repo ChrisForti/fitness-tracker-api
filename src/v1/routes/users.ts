@@ -7,6 +7,8 @@ import { generateAuthenticationToken } from "../../lib/tokens.js";
 // import { SERVER_ERROR } from "../../lib/errors.js";
 import { Validator } from "../../lib/Validator.js";
 import { ensureAuthenticated } from "../../lib/auth.js";
+import { v4 as uuidv4 } from "uuid";
+import { validate as validateUuid } from "uuid";
 
 export const userRouter = Router();
 
@@ -32,12 +34,12 @@ async function createUserHandler(
   const emailRx =
     "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
   const validator = new Validator();
-  const accountType = req.body.accountType;
+  // const accountType = req.body.accountType;
 
-  if (!["admin", "user"].includes(accountType)) {
-    res.status(400).json({ error: "Invalid account type" });
-    return;
-  }
+  // if (!["admin", "user"].includes(accountType)) {
+  //   res.status(400).json({ error: "Invalid account type" });
+  //   return;
+  // }
 
   try {
     validator.check(!!firstName, "firstName", "is required");
@@ -79,13 +81,14 @@ async function createUserHandler(
       return;
     }
 
-    // await db.insert(UserTable).values({
-    //   firstName,
-    //   lastName,
-    //   email,
-    //   passwordHash,
-    //   accountType: "user",
-    // });
+    await db.insert(UserTable).values({
+      id: uuidv4(),
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      accountType: "user",
+    });
 
     res.json({ message: "User created successfully" });
     return;
