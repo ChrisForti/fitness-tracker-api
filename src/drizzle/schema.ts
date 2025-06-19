@@ -1,5 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
-import { primaryKey } from "drizzle-orm/pg-core";
+import { primaryKey, uuid } from "drizzle-orm/pg-core";
 import {
   boolean,
   pgTable,
@@ -13,7 +13,10 @@ import {
 export const UserTable = pgTable(
   "users",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().notNull(),
+    id: uuid("id")
+      .default(sql`gen_random_uuid()`)
+      .primaryKey()
+      .notNull(),
     firstName: varchar("first_name", { length: 100 }).notNull(),
     lastName: varchar("last_name", { length: 100 }).notNull(),
     email: text("email").notNull(),
