@@ -8,7 +8,7 @@ export enum Scope {
   PASSWORD_RESET = "password",
 }
 
-export async function generateAuthenticationToken(userId: number) {
+export async function generateAuthenticationToken(userId: string) {
   const plaintext = randomBytes(32).toString("base64url");
   const hash = createHash("sha256").update(plaintext).digest("hex");
   const expiry = Math.trunc(Date.now() / 1000) + 60 * 60 * 24 * 30;
@@ -23,7 +23,7 @@ export async function generateAuthenticationToken(userId: number) {
   return plaintext;
 }
 
-export async function generatePasswordResetToken(userId: number) {
+export async function generatePasswordResetToken(userId: string) {
   const plaintext = randomBytes(32).toString("base64url");
   const hash = createHash("sha256").update(plaintext).digest("hex");
   const expiry = Math.trunc(Date.now() / 1000) + 60 * 60;

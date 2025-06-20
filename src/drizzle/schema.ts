@@ -39,7 +39,7 @@ export function lower(email: AnyPgColumn): SQL {
 
 export const TokenTable = pgTable("tokens", {
   hash: text("hash").primaryKey(),
-  userId: bigint("user_id", { mode: "number" })
+  userId: uuid("user_id")
     .notNull()
     .references(() => UserTable.id, { onDelete: "cascade" }),
   expiry: bigint("expiry", { mode: "number" }).notNull(),
