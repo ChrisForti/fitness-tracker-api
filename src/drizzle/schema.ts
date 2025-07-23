@@ -10,6 +10,7 @@ import {
   timestamp,
   date,
   pgEnum,
+  bigint,
   json,
   primaryKey,
   foreignKey,
@@ -52,9 +53,10 @@ export const exerciseCategoryEnum = pgEnum("exercise_category", [
 ]);
 
 // Users
-export const users = pgTable("users", {
+export const UserTable = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   firstName: varchar("first_name", { length: 100 }).notNull(),
   lastName: varchar("last_name", { length: 100 }).notNull(),
@@ -69,21 +71,19 @@ export const users = pgTable("users", {
 });
 
 // Tokens for auth, password reset, etc.
-export const tokens = pgTable("tokens", {
-  id: serial("id").primaryKey(),
+export const TokenTable = pgTable("tokens", {
+  hash: text("hash").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  hash: varchar("hash", { length: 255 }).notNull(),
-  expiry: integer("expiry").notNull(), // Unix timestamp
-  scope: varchar("scope", { length: 50 }).notNull(), // 'authentication', 'password-reset', etc.
+    .references(() => UserTable.id, { onDelete: "cascade" }),
+  expiry: bigint("expiry", { mode: "number" }).notNull(),
+  scope: text("scope").notNull(),
 });
-
 // User profiles with health metrics
-export const userProfiles = pgTable("user_profiles", {
+export const UserProfileTable = pgTable("user_profiles", {
   userId: uuid("user_id")
     .primaryKey()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   dateOfBirth: date("date_of_birth"),
   gender: genderEnum("gender"),
   height: decimal("height", { precision: 5, scale: 2 }), // in cm
@@ -100,7 +100,7 @@ export const weightHistory = pgTable("weight_history", {
   id: serial("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   weight: decimal("weight", { precision: 5, scale: 2 }).notNull(), // in kg
   date: date("date").notNull(),
   notes: text("notes"),
@@ -111,7 +111,7 @@ export const goals = pgTable("goals", {
   id: serial("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   goalType: goalTypeEnum("goal_type").notNull(),
@@ -139,7 +139,7 @@ export const exercises = pgTable("exercises", {
   videoUrl: varchar("video_url", { length: 255 }),
   imageUrl: varchar("image_url", { length: 255 }),
   isCustom: boolean("is_custom").default(false).notNull(),
-  creatorId: uuid("creator_id").references(() => users.id), // NULL for system exercises
+  creatorId: uuid("creator_id").references(() => UserTable.id), // NULL for system exercises
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -149,7 +149,7 @@ export const workouts = pgTable("workouts", {
   id: serial("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   workoutType: workoutTypeEnum("workout_type").notNull(),
@@ -202,7 +202,7 @@ export const workoutTemplates = pgTable("workout_templates", {
   id: serial("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   workoutType: workoutTypeEnum("workout_type").notNull(),
@@ -235,7 +235,7 @@ export const nutritionLogs = pgTable("nutrition_logs", {
   id: serial("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   date: date("date").notNull(),
   totalCalories: integer("total_calories"),
   totalProtein: integer("total_protein"), // in grams
@@ -268,7 +268,7 @@ export const progressPhotos = pgTable("progress_photos", {
   id: serial("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => UserTable.id, { onDelete: "cascade" }),
   photoUrl: varchar("photo_url", { length: 255 }).notNull(),
   date: date("date").notNull(),
   category: varchar("category", { length: 50 }), // front, back, side, etc.
